@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS & Nota - ghorakopi</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'app-bg': '#f4efe6',
+                        'nota-bg': '#e6dcc3',
+                        'nota-text': '#1a3c2a',
+                    },
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                        brand: ['Quicksand', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f4efe6;
+            color: #1a3c2a;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 60, 42, 0.1); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1a3c2a; 
+            border-radius: 4px;
+        }
+
+        /* Thermal receipt style */
+        .struk-paper {
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            color: #000000;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 font-sans antialiased">
+
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-8">
+        
+        <!-- Left Column: Control Panel -->
+        <div class="w-full md:w-1/2 lg:w-3/5 space-y-6">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h1 class="text-2xl font-bold font-brand mb-1">Control Panel</h1>
+                <p class="text-sm text-gray-500 mb-6">Kelola pesanan dan tanggal nota</p>
+
+                <!-- Date Picker -->
+                <div class="mb-6 bg-app-bg p-4 rounded-xl border border-nota-text/10">
+                    <label for="date-input" class="block text-sm font-semibold text-nota-text mb-2">Tanggal Nota</label>
+                    <input type="date" id="date-input" onchange="updateDate()" 
+                           class="w-full md:w-auto px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-nota-text focus:border-transparent">
+                </div>
+
+                <!-- Menu List -->
+                <h2 class="text-lg font-bold mb-4 text-nota-text">Daftar Menu</h2>
+                <div id="menu-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Menu items injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Receipt Preview -->
+        <div class="w-full md:w-1/2 lg:w-2/5 flex flex-col items-center">
+            
+            <div class="sticky top-8 w-full flex flex-col items-center">
+                <!-- Receipt Element -->
+                <div id="receipt-card" class="struk-paper relative p-6 font-mono text-sm w-full mx-auto" style="max-width: 320px;">
+                    
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <h2 class="text-2xl font-bold uppercase tracking-widest mb-1">ghorakopi</h2>
+                        <p class="text-xs uppercase">JL Petung, Papringan</p>
+                        <p class="text-xs uppercase">Yogyakarta</p>
+                        <p class="text-xs mt-3" id="receipt-date-display"></p>
+                    </div>
+
+                    <div class="border-t border-dashed border-black my-3"></div>
+
+                    <!-- Items Table -->
+                    <div class="min-h-[120px]">
+                        <table class="w-full text-xs">
+                            <thead>
+                                <tr class="text-left border-b border-dashed border-black">
+                                    <th class="pb-1 font-normal uppercase">Item</th>
+                                    <th class="pb-1 font-normal text-center w-8 uppercase">Qty</th>
+                                    <th class="pb-1 font-normal text-right uppercase">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="receipt-items-body">
+                                <!-- Items injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="border-t border-dashed border-black my-3"></div>
+
+                    <!-- Totals -->
+                    <div class="space-y-1 text-sm">
+                        <div class="flex justify-between font-bold pt-1 uppercase">
+                            <span>Total</span>
+                            <span id="receipt-total">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="text-center mt-6 text-xs uppercase">
+                        <p>Terima Kasih</p>
+                        <p class="mt-1">Atas Kunjungan Anda</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mt-12 w-full flex gap-3">
+                    <button onclick="downloadReceipt()" class="flex-1 bg-nota-text hover:bg-nota-text/90 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download (JPG)
+                    </button>
+                    <button onclick="resetCart()" class="px-4 py-3 bg-red-50 text-red-600 hover:bg-red-100 font-bold rounded-xl transition-all">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuItems = [
+            { id: 1, name: 'Americano', price: 20000 },
+            { id: 2, name: 'Kopi Susu Gula Aren', price: 22000 },
+            { id: 3, name: 'Matcha Latte', price: 25000 },
+            { id: 4, name: 'Coffee of the Month', price: 25000 },
+            { id: 5, name: 'Choco Aren', price: 22000 }
+        ];
+
+        let cart = {};
+        let selectedDate = new Date().toISOString().split('T')[0]; // Default to today YYYY-MM-DD
+
+        const formatRupiah = (number) => {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(number);
+        };
+
+        const formatDateIndo = (dateString) => {
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        };
+
+        function initApp() {
+            // Set date input value
+            document.getElementById('date-input').value = selectedDate;
+            updateDateDisplay();
+            renderMenu();
+            renderReceipt();
+        }
+
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            container.innerHTML = '';
+
+            menuItems.forEach(item => {
+                const qty = cart[item.id] || 0;
+                
+                const card = document.createElement('div');
+                card.className = 'bg-app-bg p-4 rounded-xl border border-gray-200 flex flex-col justify-between';
+                
+                card.innerHTML = `
+                    <div class="mb-3">
+                        <h3 class="font-bold text-nota-text leading-tight">${item.name}</h3>
+                        <p class="text-sm text-nota-text/70 mt-1">${formatRupiah(item.price)}</p>
+                    </div>
+                    <div class="flex items-center justify-between bg-white rounded-lg p-1 border border-gray-200">
+                        <button onclick="updateCart(${item.id}, -1)" class="w-8 h-8 flex items-center justify-center rounded bg-gray-50 hover:bg-red-50 text-red-600 font-bold transition">
+                            -
+                        </button>
+                        <span id="qty-${item.id}" class="font-bold text-sm w-8 text-center">${qty}</span>
+                        <button onclick="updateCart(${item.id}, 1)" class="w-8 h-8 flex items-center justify-center rounded bg-nota-text/10 hover:bg-nota-text/20 text-nota-text font-bold transition">
+                            +
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateCart(itemId, change) {
+            const currentQty = cart[itemId] || 0;
+            const newQty = currentQty + change;
+
+            if (newQty > 0) {
+                cart[itemId] = newQty;
+            } else {
+                delete cart[itemId];
+            }
+
+            document.getElementById(`qty-${itemId}`).innerText = cart[itemId] || 0;
+            renderReceipt();
+        }
+
+        function updateDate() {
+            selectedDate = document.getElementById('date-input').value;
+            updateDateDisplay();
+        }
+
+        function updateDateDisplay() {
+            document.getElementById('receipt-date-display').innerText = formatDateIndo(selectedDate);
+        }
+
+        function resetCart() {
+            cart = {};
+            renderMenu();
+            renderReceipt();
+        }
+
+        function renderReceipt() {
+            const tbody = document.getElementById('receipt-items-body');
+            tbody.innerHTML = '';
+            let grandTotal = 0;
+            let hasItems = false;
+
+            menuItems.forEach(item => {
+                if (cart[item.id]) {
+                    hasItems = true;
+                    const qty = cart[item.id];
+                    const itemTotal = qty * item.price;
+                    grandTotal += itemTotal;
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-dashed border-gray-300 last:border-0';
+                    tr.innerHTML = `
+                        <td class="py-2 pr-1 uppercase">
+                            <div class="leading-tight">${item.name}</div>
+                            <div class="text-[10px] text-gray-600 mt-0.5">@ ${formatRupiah(item.price)}</div>
+                        </td>
+                        <td class="py-2 text-center align-top pt-2">x${qty}</td>
+                        <td class="py-2 text-right align-top pt-2">${formatRupiah(itemTotal)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+
+            if (!hasItems) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-xs text-gray-500 italic">Belum ada pesanan</td></tr>';
+            }
+
+            document.getElementById('receipt-total').innerText = formatRupiah(grandTotal);
+        }
+
+        function downloadReceipt() {
+            if (Object.keys(cart).length === 0) {
+                alert("Silakan tambahkan menu terlebih dahulu.");
+                return;
+            }
+
+            const receiptElement = document.getElementById('receipt-card');
+            
+            // Backup styling that might break html2canvas
+            const originalBoxShadow = receiptElement.style.boxShadow;
+            receiptElement.style.boxShadow = 'none';
+
+            html2canvas(receiptElement, {
+                scale: 3, // Higher quality
+                backgroundColor: "#ffffff", // Force background color to white
+                logging: false,
+                useCORS: true
+            }).then(canvas => {
+                // Restore styling
+                receiptElement.style.boxShadow = originalBoxShadow;
+
+                const imageURI = canvas.toDataURL("image/jpeg", 0.95);
+                const filename = `Nota_ghorakopi_${selectedDate}.jpg`;
+
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = imageURI;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(err => {
+                console.error("Error generating image:", err);
+                alert("Gagal membuat gambar nota.");
+            });
+        }
+
+        // Run init on load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
