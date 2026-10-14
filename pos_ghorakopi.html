@@ -7,7 +7,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -18,11 +18,13 @@
                     colors: {
                         'app-bg': '#f4efe6',
                         'nota-bg': '#e6dcc3',
+                        'ghora-green': '#164628',
                         'nota-text': '#1a3c2a',
                     },
                     fontFamily: {
                         sans: ['Nunito', 'sans-serif'],
                         brand: ['Quicksand', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     }
                 }
             }
@@ -35,78 +37,197 @@
             color: #1a3c2a;
         }
         
-        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(26, 60, 42, 0.1); 
+            background: rgba(26, 60, 42, 0.08); 
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb {
-            background: #1a3c2a; 
+            background: #164628; 
             border-radius: 4px;
         }
 
-        /* Thermal receipt style */
+        /* Thermal receipt paper styling */
         .struk-paper {
             background-color: #ffffff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            color: #000000;
+            box-shadow: 0 10px 25px -5px rgba(22, 70, 40, 0.15), 0 4px 10px -3px rgba(0, 0, 0, 0.05);
+            color: #111827;
+            border-top: 5px solid #164628;
         }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 font-sans antialiased">
 
-    <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-8">
+    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
         
         <!-- Left Column: Control Panel -->
-        <div class="w-full md:w-1/2 lg:w-3/5 space-y-6">
+        <div class="w-full lg:w-3/5 space-y-6">
             
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h1 class="text-2xl font-bold font-brand mb-1">Control Panel</h1>
-                <p class="text-sm text-gray-500 mb-6">Kelola pesanan dan tanggal nota</p>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-nota-text/10">
+                <!-- App Header -->
+                <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-full bg-ghora-green flex items-center justify-center text-white font-brand font-bold text-xl shadow-sm">
+                            g
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold font-brand text-ghora-green leading-none">ghorakopi POS</h1>
+                            <p class="text-xs text-gray-500 mt-1">Sistem Pembuat Nota Digital • Papringan, Yogyakarta</p>
+                        </div>
+                    </div>
+                    <!-- Custom Logo Uploader Button -->
+                    <div>
+                        <label for="logo-upload" class="cursor-pointer inline-flex items-center gap-1.5 text-xs font-bold bg-app-bg hover:bg-nota-bg text-ghora-green px-3 py-2 rounded-xl border border-ghora-green/20 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Ganti File Logo
+                        </label>
+                        <input type="file" id="logo-upload" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+                    </div>
+                </div>
 
-                <!-- Date Picker -->
-                <div class="mb-6 bg-app-bg p-4 rounded-xl border border-nota-text/10">
-                    <label for="date-input" class="block text-sm font-semibold text-nota-text mb-2">Tanggal Nota</label>
-                    <input type="date" id="date-input" onchange="updateDate()" 
-                           class="w-full md:w-auto px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-nota-text focus:border-transparent">
+                <!-- Order Metadata Controls -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 bg-app-bg/70 p-4 rounded-xl border border-nota-text/10">
+                    <div>
+                        <label for="date-input" class="block text-xs font-bold uppercase tracking-wider text-nota-text/80 mb-1">Tanggal Nota</label>
+                        <input type="date" id="date-input" onchange="updateMeta()" 
+                               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-ghora-green">
+                    </div>
+                    <div>
+                        <label for="customer-input" class="block text-xs font-bold uppercase tracking-wider text-nota-text/80 mb-1">Nama Pelanggan / Meja</label>
+                        <input type="text" id="customer-input" oninput="updateMeta()" placeholder="Contoh: Kak Budi / Meja 2" 
+                               class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-ghora-green">
+                    </div>
+                    <div>
+                        <label for="payment-input" class="block text-xs font-bold uppercase tracking-wider text-nota-text/80 mb-1">Metode Pembayaran</label>
+                        <select id="payment-input" onchange="updateMeta()" 
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-ghora-green">
+                            <option value="QRIS">QRIS</option>
+                            <option value="Tunai (Cash)">Tunai (Cash)</option>
+                            <option value="Transfer">Transfer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="status-input" class="block text-xs font-bold uppercase tracking-wider text-nota-text/80 mb-1">Status Nota</label>
+                        <select id="status-input" onchange="updateMeta()" 
+                                class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-ghora-green">
+                            <option value="LUNAS">LUNAS (PAID)</option>
+                            <option value="BELUM BAYAR">BELUM BAYAR (OPEN)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Menu List -->
-                <h2 class="text-lg font-bold mb-4 text-nota-text">Daftar Menu</h2>
-                <div id="menu-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-base font-extrabold uppercase tracking-wider text-ghora-green">Daftar Menu Utama</h2>
+                    <span class="text-xs text-gray-400">Klik + untuk menambah</span>
+                </div>
+                <div id="menu-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
                     <!-- Menu items injected via JS -->
+                </div>
+
+                <!-- Custom Item Input -->
+                <div class="pt-4 border-t border-gray-100">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-nota-text/70 mb-2.5">Tambah Menu Tambahan / Custom</h3>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="custom-name" placeholder="Nama menu (misal: V60 Gayo / Beans 200g)" 
+                               class="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-ghora-green">
+                        <input type="number" id="custom-price" placeholder="Harga (misal: 25000)" 
+                               class="w-full sm:w-40 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-ghora-green">
+                        <button onclick="addCustomMenu()" class="bg-ghora-green hover:bg-ghora-green/90 text-white font-bold px-4 py-2 rounded-lg text-sm transition whitespace-nowrap">
+                            + Tambah
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Right Column: Receipt Preview -->
-        <div class="w-full md:w-1/2 lg:w-2/5 flex flex-col items-center">
+        <div class="w-full lg:w-2/5 flex flex-col items-center">
             
             <div class="sticky top-8 w-full flex flex-col items-center">
-                <!-- Receipt Element -->
-                <div id="receipt-card" class="struk-paper relative p-6 font-mono text-sm w-full mx-auto" style="max-width: 320px;">
+                
+                <div class="text-xs font-bold uppercase tracking-widest text-nota-text/60 mb-2">Preview Nota Penjualan</div>
+
+                <!-- Receipt Element to Capture -->
+                <div id="receipt-card" class="struk-paper relative p-6 font-mono text-xs w-full mx-auto rounded-b-lg" style="max-width: 340px;">
                     
-                    <!-- Header -->
-                    <div class="text-center mb-4">
-                        <h2 class="text-2xl font-bold uppercase tracking-widest mb-1">ghorakopi</h2>
-                        <p class="text-xs uppercase">JL Petung, Papringan</p>
-                        <p class="text-xs uppercase">Yogyakarta</p>
-                        <p class="text-xs mt-3" id="receipt-date-display"></p>
+                    <!-- Brand Header with Exact Logo -->
+                    <div class="flex flex-col items-center text-center mb-3">
+                        <div id="logo-wrapper" class="w-24 h-24 mb-2.5 flex items-center justify-center">
+                            <!-- High-precision SVG replica of the attached ghorakopi logo -->
+                            <svg id="default-svg-logo" viewBox="0 0 240 240" class="w-full h-full">
+                                <!-- Deep Forest Green Circle -->
+                                <circle cx="120" cy="120" r="118" fill="#164628"/>
+                                
+                                <!-- Open 'C' Cup / Roaster Curve -->
+                                <path d="M 171 78 A 56 54 0 1 0 144 157" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round"/>
+                                
+                                <!-- Coffee Bean Stem Top-Right -->
+                                <path d="M 172 110 C 171 116, 169 121, 166 125" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round"/>
+                                
+                                <!-- Tilted Coffee Bean Body + Center Crease -->
+                                <g transform="translate(158, 143) rotate(32)">
+                                    <ellipse cx="0" cy="0" rx="15.5" ry="21.5" fill="#164628" stroke="#ffffff" stroke-width="5.5"/>
+                                    <path d="M 0 -18 C -2.5 -6, 2.5 6, 0 18" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round"/>
+                                </g>
+
+                                <!-- 'ghorakopi' Typography Inside Logo -->
+                                <text x="120" y="196" font-family="'Quicksand', 'Nunito', sans-serif" font-weight="700" font-size="31" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">ghorakopi</text>
+                            </svg>
+                            <!-- Optional uploaded image fallback -->
+                            <img id="uploaded-img-logo" src="" alt="ghorakopi" class="w-24 h-24 rounded-full object-cover hidden" />
+                        </div>
+
+                        <p class="text-[11px] font-bold tracking-wider uppercase text-gray-800 mt-0.5">JL Petung, Papringan</p>
+                        <p class="text-[11px] font-bold tracking-wider uppercase text-gray-800">Yogyakarta</p>
+                        
+                        <!-- Instagram Badge -->
+                        <div class="inline-flex items-center justify-center gap-1 mt-1.5 text-[11px] text-gray-700 font-medium">
+                            <svg class="w-3.5 h-3.5 text-gray-800" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+                            </svg>
+                            <span>@ghorakopi</span>
+                        </div>
                     </div>
 
-                    <div class="border-t border-dashed border-black my-3"></div>
+                    <div class="border-t border-dashed border-gray-400 my-2.5"></div>
+
+                    <!-- Receipt Meta Details -->
+                    <div class="text-[11px] space-y-1 text-gray-700">
+                        <div class="flex justify-between">
+                            <span>No. Nota:</span>
+                            <span id="receipt-no" class="font-bold text-gray-900">#GK-0812</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Tanggal :</span>
+                            <span id="receipt-date-display"></span>
+                        </div>
+                        <div id="receipt-customer-row" class="flex justify-between hidden">
+                            <span>Pelanggan:</span>
+                            <span id="receipt-customer-display" class="font-bold text-gray-900"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Bayar   :</span>
+                            <span id="receipt-payment-display">QRIS</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-dashed border-gray-400 my-2.5"></div>
 
                     <!-- Items Table -->
-                    <div class="min-h-[120px]">
-                        <table class="w-full text-xs">
+                    <div class="min-h-[110px]">
+                        <table class="w-full text-[11px]">
                             <thead>
-                                <tr class="text-left border-b border-dashed border-black">
-                                    <th class="pb-1 font-normal uppercase">Item</th>
-                                    <th class="pb-1 font-normal text-center w-8 uppercase">Qty</th>
-                                    <th class="pb-1 font-normal text-right uppercase">Total</th>
+                                <tr class="text-left border-b border-dashed border-gray-400 text-gray-600">
+                                    <th class="pb-1.5 font-bold uppercase">Menu</th>
+                                    <th class="pb-1.5 font-bold text-center w-8 uppercase">Qty</th>
+                                    <th class="pb-1.5 font-bold text-right uppercase">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody id="receipt-items-body">
@@ -115,32 +236,46 @@
                         </table>
                     </div>
 
-                    <div class="border-t border-dashed border-black my-3"></div>
+                    <div class="border-t border-dashed border-gray-400 my-2.5"></div>
 
                     <!-- Totals -->
-                    <div class="space-y-1 text-sm">
-                        <div class="flex justify-between font-bold pt-1 uppercase">
+                    <div class="space-y-1 text-xs">
+                        <div class="flex justify-between text-[11px] text-gray-600">
+                            <span>Total Item</span>
+                            <span id="receipt-qty-total">0 cup</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-sm pt-1 text-gray-900 uppercase">
                             <span>Total</span>
                             <span id="receipt-total">Rp 0</span>
                         </div>
                     </div>
 
+                    <!-- Payment Status Stamp -->
+                    <div class="mt-3 flex justify-center">
+                        <span id="receipt-status-badge" class="border border-ghora-green text-ghora-green text-[10px] font-bold px-3 py-0.5 rounded uppercase tracking-widest">
+                            *** LUNAS ***
+                        </span>
+                    </div>
+
+                    <div class="border-t border-dashed border-gray-300 my-3"></div>
+
                     <!-- Footer -->
-                    <div class="text-center mt-6 text-xs uppercase">
-                        <p>Terima Kasih</p>
-                        <p class="mt-1">Atas Kunjungan Anda</p>
+                    <div class="text-center text-[10px] text-gray-600 space-y-0.5">
+                        <p class="font-bold text-gray-800 uppercase">Terima Kasih Atas Kunjungan Anda</p>
+                        <p>Follow IG <span class="font-semibold text-gray-800">@ghorakopi</span> untuk info</p>
+                        <p>menu & beans terbaru kami.</p>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="mt-12 w-full flex gap-3">
-                    <button onclick="downloadReceipt()" class="flex-1 bg-nota-text hover:bg-nota-text/90 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                <div class="mt-6 w-full max-w-[340px] flex gap-2.5">
+                    <button onclick="downloadReceipt()" class="flex-1 bg-ghora-green hover:bg-ghora-green/90 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
-                        Download (JPG)
+                        Download Nota (JPG)
                     </button>
-                    <button onclick="resetCart()" class="px-4 py-3 bg-red-50 text-red-600 hover:bg-red-100 font-bold rounded-xl transition-all">
+                    <button onclick="resetCart()" class="px-4 py-3 bg-white hover:bg-red-50 text-red-600 border border-red-200 font-bold rounded-xl transition-all text-sm">
                         Reset
                     </button>
                 </div>
@@ -149,7 +284,7 @@
     </div>
 
     <script>
-        const menuItems = [
+        let menuItems = [
             { id: 1, name: 'Americano', price: 20000 },
             { id: 2, name: 'Kopi Susu Gula Aren', price: 22000 },
             { id: 3, name: 'Matcha Latte', price: 25000 },
@@ -158,7 +293,7 @@
         ];
 
         let cart = {};
-        let selectedDate = new Date().toISOString().split('T')[0]; // Default to today YYYY-MM-DD
+        let selectedDate = new Date().toISOString().split('T')[0];
 
         const formatRupiah = (number) => {
             return new Intl.NumberFormat('id-ID', {
@@ -169,16 +304,38 @@
         };
 
         const formatDateIndo = (dateString) => {
-            const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            return new Date(dateString).toLocaleDateString('id-ID', options);
+            if (!dateString) return '-';
+            const [year, month, day] = dateString.split('-');
+            const dateObj = new Date(year, month - 1, day);
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            return dateObj.toLocaleDateString('id-ID', options);
         };
 
+        function generateReceiptNumber() {
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('receipt-no').innerText = `#GK-${randomNum}`;
+        }
+
         function initApp() {
-            // Set date input value
             document.getElementById('date-input').value = selectedDate;
-            updateDateDisplay();
+            generateReceiptNumber();
+            updateMeta();
             renderMenu();
             renderReceipt();
+        }
+
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgLogo = document.getElementById('uploaded-img-logo');
+                const svgLogo = document.getElementById('default-svg-logo');
+                imgLogo.src = e.target.result;
+                imgLogo.classList.remove('hidden');
+                svgLogo.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
         }
 
         function renderMenu() {
@@ -187,27 +344,52 @@
 
             menuItems.forEach(item => {
                 const qty = cart[item.id] || 0;
+                const isSelected = qty > 0;
                 
                 const card = document.createElement('div');
-                card.className = 'bg-app-bg p-4 rounded-xl border border-gray-200 flex flex-col justify-between';
+                card.className = `p-3.5 rounded-xl border transition-all flex items-center justify-between ${
+                    isSelected ? 'bg-ghora-green/5 border-ghora-green shadow-sm' : 'bg-app-bg/60 border-gray-200'
+                }`;
                 
                 card.innerHTML = `
-                    <div class="mb-3">
-                        <h3 class="font-bold text-nota-text leading-tight">${item.name}</h3>
-                        <p class="text-sm text-nota-text/70 mt-1">${formatRupiah(item.price)}</p>
+                    <div class="pr-2">
+                        <h3 class="font-bold text-nota-text text-sm leading-tight">${item.name}</h3>
+                        <p class="text-xs font-semibold text-ghora-green/80 mt-1">${formatRupiah(item.price)}</p>
                     </div>
-                    <div class="flex items-center justify-between bg-white rounded-lg p-1 border border-gray-200">
-                        <button onclick="updateCart(${item.id}, -1)" class="w-8 h-8 flex items-center justify-center rounded bg-gray-50 hover:bg-red-50 text-red-600 font-bold transition">
+                    <div class="flex items-center bg-white rounded-lg p-1 border border-gray-200 shadow-sm">
+                        <button onclick="updateCart(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center rounded bg-gray-50 hover:bg-red-50 text-red-600 font-bold transition">
                             -
                         </button>
-                        <span id="qty-${item.id}" class="font-bold text-sm w-8 text-center">${qty}</span>
-                        <button onclick="updateCart(${item.id}, 1)" class="w-8 h-8 flex items-center justify-center rounded bg-nota-text/10 hover:bg-nota-text/20 text-nota-text font-bold transition">
+                        <span id="qty-${item.id}" class="font-bold text-xs w-7 text-center text-gray-800">${qty}</span>
+                        <button onclick="updateCart(${item.id}, 1)" class="w-7 h-7 flex items-center justify-center rounded bg-ghora-green text-white hover:bg-ghora-green/90 font-bold transition">
                             +
                         </button>
                     </div>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        function addCustomMenu() {
+            const nameInput = document.getElementById('custom-name');
+            const priceInput = document.getElementById('custom-price');
+            const name = nameInput.value.trim();
+            const price = parseInt(priceInput.value, 10);
+
+            if (!name || isNaN(price) || price <= 0) {
+                alert('Mohon isi nama menu dan harga yang valid.');
+                return;
+            }
+
+            const newId = Date.now();
+            menuItems.push({ id: newId, name: name, price: price });
+            cart[newId] = 1;
+
+            nameInput.value = '';
+            priceInput.value = '';
+
+            renderMenu();
+            renderReceipt();
         }
 
         function updateCart(itemId, change) {
@@ -220,21 +402,43 @@
                 delete cart[itemId];
             }
 
-            document.getElementById(`qty-${itemId}`).innerText = cart[itemId] || 0;
+            renderMenu();
             renderReceipt();
         }
 
-        function updateDate() {
+        function updateMeta() {
             selectedDate = document.getElementById('date-input').value;
-            updateDateDisplay();
-        }
+            const customer = document.getElementById('customer-input').value.trim();
+            const payment = document.getElementById('payment-input').value;
+            const status = document.getElementById('status-input').value;
 
-        function updateDateDisplay() {
             document.getElementById('receipt-date-display').innerText = formatDateIndo(selectedDate);
+            document.getElementById('receipt-payment-display').innerText = payment;
+
+            const customerRow = document.getElementById('receipt-customer-row');
+            const customerDisplay = document.getElementById('receipt-customer-display');
+            if (customer) {
+                customerRow.classList.remove('hidden');
+                customerDisplay.innerText = customer;
+            } else {
+                customerRow.classList.add('hidden');
+            }
+
+            const statusBadge = document.getElementById('receipt-status-badge');
+            if (status === 'LUNAS') {
+                statusBadge.innerText = '*** LUNAS ***';
+                statusBadge.className = 'border border-ghora-green text-ghora-green text-[10px] font-bold px-3 py-0.5 rounded uppercase tracking-widest';
+            } else {
+                statusBadge.innerText = '* BELUM BAYAR *';
+                statusBadge.className = 'border border-amber-600 text-amber-700 text-[10px] font-bold px-3 py-0.5 rounded uppercase tracking-widest';
+            }
         }
 
         function resetCart() {
             cart = {};
+            document.getElementById('customer-input').value = '';
+            generateReceiptNumber();
+            updateMeta();
             renderMenu();
             renderReceipt();
         }
@@ -243,6 +447,7 @@
             const tbody = document.getElementById('receipt-items-body');
             tbody.innerHTML = '';
             let grandTotal = 0;
+            let totalQty = 0;
             let hasItems = false;
 
             menuItems.forEach(item => {
@@ -251,51 +456,52 @@
                     const qty = cart[item.id];
                     const itemTotal = qty * item.price;
                     grandTotal += itemTotal;
+                    totalQty += qty;
 
                     const tr = document.createElement('tr');
-                    tr.className = 'border-b border-dashed border-gray-300 last:border-0';
+                    tr.className = 'border-b border-dashed border-gray-200 last:border-0';
                     tr.innerHTML = `
-                        <td class="py-2 pr-1 uppercase">
-                            <div class="leading-tight">${item.name}</div>
-                            <div class="text-[10px] text-gray-600 mt-0.5">@ ${formatRupiah(item.price)}</div>
+                        <td class="py-2 pr-1">
+                            <div class="font-bold text-gray-900 uppercase leading-tight">${item.name}</div>
+                            <div class="text-[10px] text-gray-500 mt-0.5">@ ${formatRupiah(item.price)}</div>
                         </td>
-                        <td class="py-2 text-center align-top pt-2">x${qty}</td>
-                        <td class="py-2 text-right align-top pt-2">${formatRupiah(itemTotal)}</td>
+                        <td class="py-2 text-center align-top font-semibold text-gray-800">x${qty}</td>
+                        <td class="py-2 text-right align-top font-bold text-gray-900">${formatRupiah(itemTotal)}</td>
                     `;
                     tbody.appendChild(tr);
                 }
             });
 
             if (!hasItems) {
-                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-xs text-gray-500 italic">Belum ada pesanan</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-8 text-[11px] text-gray-400 italic">Belum ada item dipilih</td></tr>';
             }
 
+            document.getElementById('receipt-qty-total').innerText = `${totalQty} item`;
             document.getElementById('receipt-total').innerText = formatRupiah(grandTotal);
         }
 
         function downloadReceipt() {
             if (Object.keys(cart).length === 0) {
-                alert("Silakan tambahkan menu terlebih dahulu.");
+                alert("Silakan pilih minimal 1 menu terlebih dahulu.");
                 return;
             }
 
             const receiptElement = document.getElementById('receipt-card');
-            
-            // Backup styling that might break html2canvas
             const originalBoxShadow = receiptElement.style.boxShadow;
             receiptElement.style.boxShadow = 'none';
 
             html2canvas(receiptElement, {
-                scale: 3, // Higher quality
-                backgroundColor: "#ffffff", // Force background color to white
+                scale: 3,
+                backgroundColor: "#ffffff",
                 logging: false,
                 useCORS: true
             }).then(canvas => {
-                // Restore styling
                 receiptElement.style.boxShadow = originalBoxShadow;
 
                 const imageURI = canvas.toDataURL("image/jpeg", 0.95);
-                const filename = `Nota_ghorakopi_${selectedDate}.jpg`;
+                const customer = document.getElementById('customer-input').value.trim().replace(/\s+/g, '_');
+                const suffix = customer ? `_${customer}` : '';
+                const filename = `Nota_ghorakopi_${selectedDate}${suffix}.jpg`;
 
                 const link = document.createElement('a');
                 link.download = filename;
@@ -305,11 +511,10 @@
                 document.body.removeChild(link);
             }).catch(err => {
                 console.error("Error generating image:", err);
-                alert("Gagal membuat gambar nota.");
+                alert("Gagal mengunduh gambar nota.");
             });
         }
 
-        // Run init on load
         window.onload = initApp;
     </script>
 </body>
